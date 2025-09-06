@@ -10,11 +10,15 @@ This simple web application allows users to log in from multiple devices and man
 - Owners, Leaders, and IT staff can view everyone's tasks and assign tasks to any user.
 - Responsive Bootstrap-based interface for a cleaner look and easier navigation.
 
+
 ### Sample accounts
 - `Ali` / `password` – Owner for branches Mzone & UNIPRO
 - `sadegh` / `password` – Worker for branches Mzone & UNIPRO
 - `X` / `password` – Leader for branch UNIPRO
 - `pedram` / `password` – IT for branch Babol
+
+
+- Owners, Leaders, and IT staff can view everyone's tasks and assign tasks to any user.
 
 ## Setup
 1. Install dependencies:
