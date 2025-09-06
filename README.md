@@ -7,6 +7,14 @@ This simple web application allows users to log in from multiple devices and man
 - View and add personal tasks with a priority (High, Mid, or Low).
 - Each user has a role and belongs to one or more branches.
 - Tasks and user metadata are stored persistently in `data/users.json`.
+- Owners, Leaders, and IT staff can view everyone's tasks and assign tasks to any user.
+
+### Sample accounts
+- `Ali` / `password` – Owner for branches Mzone & UNIPRO
+- `sadegh` / `password` – Worker for branches Mzone & UNIPRO
+- `X` / `password` – Leader for branch UNIPRO
+- `pedram` / `password` – IT for branch Babol
+
 
 - Owners, Leaders, and IT staff can view everyone's tasks and assign tasks to any user.
 

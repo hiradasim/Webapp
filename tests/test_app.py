@@ -30,7 +30,8 @@ def client(tmp_path, monkeypatch):
 
 def test_owner_can_assign_to_others(client):
     resp = client.post('/login', data={'username': 'owner', 'password': 'secret'}, follow_redirects=True)
-    assert b"owner's Tasks" in resp.data
+    assert b"All Users' Tasks" in resp.data
+
     assert b"worker's Tasks" in resp.data
 
     # owner assigns task to worker
@@ -50,6 +51,8 @@ def test_owner_can_assign_to_others(client):
 
 def test_worker_cannot_assign_or_view_others(client):
     resp = client.post('/login', data={'username': 'worker', 'password': 'secret'}, follow_redirects=True)
+    assert b"All Users' Tasks" not in resp.data
+
     assert b"owner's Tasks" not in resp.data
 
     resp = client.post(
@@ -74,3 +77,4 @@ def test_requires_login(client):
     resp = client.get('/tasks')
     # should redirect to login
     assert resp.status_code == 302
+
