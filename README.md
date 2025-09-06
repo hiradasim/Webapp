@@ -15,6 +15,10 @@ This simple web application allows users to log in from multiple devices and man
 - `X` / `password` – Leader for branch UNIPRO
 - `pedram` / `password` – IT for branch Babol
 
+
+- Owners, Leaders, and IT staff can view everyone's tasks and assign tasks to any user.
+
+
 ## Setup
 1. Install dependencies:
    ```bash

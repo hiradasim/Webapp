@@ -5,6 +5,7 @@
 </head>
 <body>
     <h1>{% if can_assign %}All Users' Tasks{% else %}{{ user }}'s Tasks{% endif %}</h1>
+
     <p>Role: {{ role }} | Branches: {{ branches | join(', ') }}</p>
 
     {% if can_assign %}
@@ -19,6 +20,7 @@
             {% else %}
             <p>No tasks</p>
             {% endif %}
+
         {% endfor %}
         <form method="post">
             <input type="text" name="task" placeholder="New task" />
@@ -38,6 +40,7 @@
         <ul>
         {% for task in tasks %}
             <li>{{ task['description'] }} ({{ task['priority'] }})</li>
+
         {% endfor %}
         </ul>
         <form method="post">
