@@ -73,6 +73,7 @@ def tasks():
                     tasks_list[idx]['status'] = new_status
                     save_users(users)
 
+
     if can_assign:
         return render_template(
             'tasks.html',

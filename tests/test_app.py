@@ -31,6 +31,7 @@ def client(tmp_path, monkeypatch):
 def test_owner_can_assign_to_others(client):
     resp = client.post('/login', data={'username': 'owner', 'password': 'secret'}, follow_redirects=True)
     assert b"All Users' Tasks" in resp.data
+
     assert b"worker's Tasks" in resp.data
 
     # owner assigns task to worker
@@ -46,12 +47,14 @@ def test_owner_can_assign_to_others(client):
         'description': 'Delegate',
         'priority': 'High',
         'status': 'Incomplete',
+
     } in users['worker']['tasks']
 
 
 def test_worker_cannot_assign_or_view_others(client):
     resp = client.post('/login', data={'username': 'worker', 'password': 'secret'}, follow_redirects=True)
     assert b"All Users' Tasks" not in resp.data
+
     assert b"owner's Tasks" not in resp.data
 
     resp = client.post(
@@ -66,11 +69,13 @@ def test_worker_cannot_assign_or_view_others(client):
         'description': 'Own Task',
         'priority': 'Low',
         'status': 'Incomplete',
+
     } in users['worker']['tasks']
     assert {
         'description': 'Own Task',
         'priority': 'Low',
         'status': 'Incomplete',
+
     } not in users['owner']['tasks']
 
 
@@ -91,3 +96,4 @@ def test_user_can_update_status(client):
     assert b'Done' in resp.data
     users = load_users()
     assert users['worker']['tasks'][0]['status'] == 'Done'
+
