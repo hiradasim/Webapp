@@ -6,6 +6,15 @@ app = Flask(__name__)
 app.secret_key = "supersecret"
 DATA_PATH = Path('data/users.json')
 
+
+@app.template_filter('priority_class')
+def priority_class(priority):
+    return {
+        'High': 'bg-danger',
+        'Mid': 'bg-warning text-dark',
+        'Low': 'bg-success',
+    }.get(priority, 'bg-secondary')
+
 def load_users():
     with DATA_PATH.open() as f:
         return json.load(f)
@@ -78,4 +87,3 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
