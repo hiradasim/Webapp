@@ -1,6 +1,7 @@
 import json
 import re
 from pathlib import Path
+from datetime import datetime
 from flask import Flask, request, session, redirect, url_for, render_template, jsonify
 from werkzeug.utils import secure_filename
 
@@ -92,6 +93,7 @@ def tasks():
     can_assign = role in {'Owner', 'Leader', 'IT'}
 
     if request.method == 'POST':
+        # create a new task
         if 'task' in request.form:
             task = request.form['task']
             priority = request.form.get('priority', 'Mid')
@@ -100,20 +102,65 @@ def tasks():
                 target = assignee if can_assign else username
                 target_data = users.get(target)
                 if target_data:
+                    now = datetime.utcnow().isoformat()
                     target_data['tasks'].append({
                         'description': task,
                         'priority': priority,
                         'status': 'Incomplete',
+                        'notes': [],
+                        'created_at': now,
+                        'history': [{
+                            'status': 'Incomplete',
+                            'timestamp': now,
+                            'action': 'created'
+                        }],
                     })
                     save_users(users)
+        # add a note to an existing task
+        elif 'note' in request.form and 'task_index' in request.form:
+            target = request.form.get('user', username)
+            idx = int(request.form['task_index'])
+            note = request.form['note'].strip()
+            tasks_list = users.get(target, {}).get('tasks', [])
+            if note and 0 <= idx < len(tasks_list):
+                entry = {
+                    'text': note,
+                    'timestamp': datetime.utcnow().isoformat(),
+                    'author': username,
+                }
+                tasks_list[idx].setdefault('notes', []).append(entry)
+                save_users(users)
+        # reassign a task to another user
+        elif 'task_index' in request.form and 'reassign' in request.form and can_assign:
+            source = request.form.get('user', username)
+            idx = int(request.form['task_index'])
+            new_user = request.form['reassign']
+            if new_user in users and source in users:
+                tasks_list = users[source]['tasks']
+                if 0 <= idx < len(tasks_list):
+                    task = tasks_list.pop(idx)
+                    task.setdefault('history', []).append({
+                        'status': task.get('status'),
+                        'timestamp': datetime.utcnow().isoformat(),
+                        'action': f'reassigned_to_{new_user}'
+                    })
+                    users[new_user]['tasks'].append(task)
+                    save_users(users)
+        # update status of a task
         elif 'task_index' in request.form and 'status' in request.form:
             target = request.form.get('user', username)
-            if target == username:
+            if target == username or can_assign:
                 idx = int(request.form['task_index'])
                 new_status = request.form['status']
-                tasks_list = users[target]['tasks']
+                tasks_list = users.get(target, {}).get('tasks', [])
                 if 0 <= idx < len(tasks_list):
-                    tasks_list[idx]['status'] = new_status
+                    task = tasks_list[idx]
+                    task['status'] = new_status
+                    task.setdefault('history', []).append({
+                        'status': new_status,
+                        'timestamp': datetime.utcnow().isoformat(),
+                        'action': 'status_change'
+                    })
                     save_users(users)
 
 
@@ -134,6 +181,19 @@ def tasks():
         can_assign=False,
         tasks=user_data['tasks'],
     )
+
+
+@app.route('/tasks/<user>/<int:index>')
+def task_detail(user, index):
+    """Display details and history for a single task."""
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    users = load_users()
+    tasks = users.get(user, {}).get('tasks', [])
+    if index < 0 or index >= len(tasks):
+        return redirect(url_for('tasks'))
+    task = tasks[index]
+    return render_template('task_detail.html', task=task, user=user, index=index)
 
 @app.route('/logout')
 def logout():

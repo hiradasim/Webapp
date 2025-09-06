@@ -10,12 +10,12 @@
       <div class="col-md-6 mb-4">
         <div class="card h-100">
           <div class="card-header">{{ uname }}'s Tasks</div>
-          <ul class="list-group list-group-flush">
+          <ul class="list-group list-group-flush task-list" data-user="{{ uname }}">
             {% if udata['tasks'] %}
               {% for task in udata['tasks'] %}
-              <li class="list-group-item">
+              <li class="list-group-item task-item" draggable="true" data-user="{{ uname }}" data-index="{{ loop.index0 }}">
                 <form method="post" class="d-flex justify-content-between align-items-center">
-                  <span>{{ task['description'] }}</span>
+                  <span><a href="{{ url_for('task_detail', user=uname, index=loop.index0) }}">{{ task['description'] }}</a></span>
                   <div class="d-flex align-items-center gap-2">
                     <span class="badge {{ task['priority'] | priority_class }}">{{ task['priority'] }}</span>
                     <select name="status" class="form-select form-select-sm" {% if uname != user %}disabled{% endif %}>
@@ -29,6 +29,16 @@
                     <button type="submit" class="btn btn-sm btn-outline-primary">Update</button>
                     {% endif %}
                   </div>
+                </form>
+                <form method="post" class="d-flex align-items-center mt-2">
+                  <input type="hidden" name="task_index" value="{{ loop.index0 }}">
+                  <input type="hidden" name="user" value="{{ uname }}">
+                  <select name="reassign" class="form-select form-select-sm">
+                    {% for uname2 in all_users.keys() if uname2 != uname %}
+                    <option value="{{ uname2 }}">{{ uname2 }}</option>
+                    {% endfor %}
+                  </select>
+                  <button type="submit" class="btn btn-sm btn-outline-secondary ms-2">Reassign</button>
                 </form>
 
               </li>
@@ -71,11 +81,11 @@
 {% else %}
   <div class="card mb-4">
     <div class="card-header">Your Tasks</div>
-    <ul class="list-group list-group-flush">
+    <ul class="list-group list-group-flush" data-user="{{ user }}">
       {% for task in tasks %}
       <li class="list-group-item">
         <form method="post" class="d-flex justify-content-between align-items-center">
-          <span>{{ task['description'] }}</span>
+          <span><a href="{{ url_for('task_detail', user=user, index=loop.index0) }}">{{ task['description'] }}</a></span>
           <div class="d-flex align-items-center gap-2">
             <span class="badge {{ task['priority'] | priority_class }}">{{ task['priority'] }}</span>
             <select name="status" class="form-select form-select-sm">

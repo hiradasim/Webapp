@@ -57,12 +57,10 @@ def test_owner_can_assign_to_others(client):
     assert b'Delegate' in resp.data
 
     users = load_users()
-    assert {
-        'description': 'Delegate',
-        'priority': 'High',
-        'status': 'Incomplete',
-
-    } in users['worker']['tasks']
+    task = users['worker']['tasks'][0]
+    assert task['description'] == 'Delegate'
+    assert task['priority'] == 'High'
+    assert task['status'] == 'Incomplete'
 
 
 def test_worker_cannot_assign_or_view_others(client):
@@ -79,18 +77,11 @@ def test_worker_cannot_assign_or_view_others(client):
     assert b'Own Task' in resp.data
 
     users = load_users()
-    assert {
-        'description': 'Own Task',
-        'priority': 'Low',
-        'status': 'Incomplete',
-
-    } in users['worker']['tasks']
-    assert {
-        'description': 'Own Task',
-        'priority': 'Low',
-        'status': 'Incomplete',
-
-    } not in users['owner']['tasks']
+    worker_task = users['worker']['tasks'][0]
+    assert worker_task['description'] == 'Own Task'
+    assert worker_task['priority'] == 'Low'
+    assert worker_task['status'] == 'Incomplete'
+    assert all(t['description'] != 'Own Task' for t in users['owner']['tasks'])
 
 
 def test_requires_login(client):
@@ -109,7 +100,27 @@ def test_user_can_update_status(client):
     )
     assert b'Done' in resp.data
     users = load_users()
-    assert users['worker']['tasks'][0]['status'] == 'Done'
+    task = users['worker']['tasks'][0]
+    assert task['status'] == 'Done'
+    assert any(h['status'] == 'Done' for h in task.get('history', []))
+
+
+def test_add_note_and_reassign(client):
+    client.post('/login', data={'username': 'owner', 'password': 'secret'}, follow_redirects=True)
+    client.post('/tasks', data={'task': 'NoteMe', 'priority': 'Mid', 'assignee': 'worker'}, follow_redirects=True)
+    client.get('/logout')
+
+    client.post('/login', data={'username': 'worker', 'password': 'secret'}, follow_redirects=True)
+    client.post('/tasks', data={'task_index': '0', 'user': 'worker', 'note': 'first note'}, follow_redirects=True)
+    users = load_users()
+    assert users['worker']['tasks'][0]['notes'][0]['text'] == 'first note'
+    client.get('/logout')
+
+    client.post('/login', data={'username': 'owner', 'password': 'secret'}, follow_redirects=True)
+    client.post('/tasks', data={'task_index': '0', 'user': 'worker', 'reassign': 'other'}, follow_redirects=True)
+    users = load_users()
+    assert users['worker']['tasks'] == []
+    assert users['other']['tasks'][0]['description'] == 'NoteMe'
 
 def test_chat_requires_login(client):
     resp = client.post('/chat/messages', data={'message': 'hi'})
