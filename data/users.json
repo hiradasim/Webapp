@@ -4,8 +4,9 @@
     "role": "Owner",
     "branches": ["Mzone", "UNIPRO"],
     "tasks": [
-      {"description": "Buy milk", "priority": "High"},
-      {"description": "Read book", "priority": "Low"}
+      {"description": "Buy milk", "priority": "High", "status": "Incomplete"},
+      {"description": "Read book", "priority": "Low", "status": "Incomplete"}
+
     ]
   },
   "sadegh": {

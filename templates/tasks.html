@@ -13,9 +13,24 @@
           <ul class="list-group list-group-flush">
             {% if udata['tasks'] %}
               {% for task in udata['tasks'] %}
-              <li class="list-group-item d-flex justify-content-between align-items-center">
-                {{ task['description'] }}
-                <span class="badge {{ task['priority'] | priority_class }}">{{ task['priority'] }}</span>
+              <li class="list-group-item">
+                <form method="post" class="d-flex justify-content-between align-items-center">
+                  <span>{{ task['description'] }}</span>
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="badge {{ task['priority'] | priority_class }}">{{ task['priority'] }}</span>
+                    <select name="status" class="form-select form-select-sm" {% if uname != user %}disabled{% endif %}>
+                      <option value="Incomplete" {% if task['status'] == 'Incomplete' %}selected{% endif %}>Incomplete</option>
+                      <option value="Doing" {% if task['status'] == 'Doing' %}selected{% endif %}>Doing</option>
+                      <option value="Done" {% if task['status'] == 'Done' %}selected{% endif %}>Done</option>
+                    </select>
+                    {% if uname == user %}
+                    <input type="hidden" name="task_index" value="{{ loop.index0 }}">
+                    <input type="hidden" name="user" value="{{ uname }}">
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Update</button>
+                    {% endif %}
+                  </div>
+                </form>
+
               </li>
               {% endfor %}
             {% else %}
@@ -58,9 +73,22 @@
     <div class="card-header">Your Tasks</div>
     <ul class="list-group list-group-flush">
       {% for task in tasks %}
-      <li class="list-group-item d-flex justify-content-between align-items-center">
-        {{ task['description'] }}
-        <span class="badge {{ task['priority'] | priority_class }}">{{ task['priority'] }}</span>
+      <li class="list-group-item">
+        <form method="post" class="d-flex justify-content-between align-items-center">
+          <span>{{ task['description'] }}</span>
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge {{ task['priority'] | priority_class }}">{{ task['priority'] }}</span>
+            <select name="status" class="form-select form-select-sm">
+              <option value="Incomplete" {% if task['status'] == 'Incomplete' %}selected{% endif %}>Incomplete</option>
+              <option value="Doing" {% if task['status'] == 'Doing' %}selected{% endif %}>Doing</option>
+              <option value="Done" {% if task['status'] == 'Done' %}selected{% endif %}>Done</option>
+            </select>
+            <input type="hidden" name="task_index" value="{{ loop.index0 }}">
+            <input type="hidden" name="user" value="{{ user }}">
+            <button type="submit" class="btn btn-sm btn-outline-primary">Update</button>
+          </div>
+        </form>
+
       </li>
       {% endfor %}
       {% if not tasks %}
@@ -91,4 +119,3 @@
 {% endif %}
 {% endblock %}
 
-  

@@ -46,6 +46,8 @@ def test_owner_can_assign_to_others(client):
     assert {
         'description': 'Delegate',
         'priority': 'High',
+        'status': 'Incomplete',
+
     } in users['worker']['tasks']
 
 
@@ -66,10 +68,14 @@ def test_worker_cannot_assign_or_view_others(client):
     assert {
         'description': 'Own Task',
         'priority': 'Low',
+        'status': 'Incomplete',
+
     } in users['worker']['tasks']
     assert {
         'description': 'Own Task',
         'priority': 'Low',
+        'status': 'Incomplete',
+
     } not in users['owner']['tasks']
 
 
@@ -77,4 +83,17 @@ def test_requires_login(client):
     resp = client.get('/tasks')
     # should redirect to login
     assert resp.status_code == 302
+
+
+def test_user_can_update_status(client):
+    client.post('/login', data={'username': 'worker', 'password': 'secret'}, follow_redirects=True)
+    client.post('/tasks', data={'task': 'Progress Task', 'priority': 'Mid'}, follow_redirects=True)
+    resp = client.post(
+        '/tasks',
+        data={'task_index': '0', 'status': 'Done', 'user': 'worker'},
+        follow_redirects=True,
+    )
+    assert b'Done' in resp.data
+    users = load_users()
+    assert users['worker']['tasks'][0]['status'] == 'Done'
 

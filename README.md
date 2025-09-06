@@ -5,6 +5,8 @@ This simple web application allows users to log in from multiple devices and man
 ## Features
 - User login with session handling.
 - View and add personal tasks with a priority (High, Mid, or Low).
+- Each task carries a status (Incomplete, Doing, or Done) that the assignee can update.
+
 - Each user has a role and belongs to one or more branches.
 - Tasks and user metadata are stored persistently in `data/users.json`.
 - Owners, Leaders, and IT staff can view everyone's tasks and assign tasks to any user.
@@ -18,7 +20,9 @@ This simple web application allows users to log in from multiple devices and man
 - `pedram` / `password` – IT for branch Babol
 
 
+
 - Owners, Leaders, and IT staff can view everyone's tasks and assign tasks to any user.
+
 
 ## Setup
 1. Install dependencies:

@@ -49,18 +49,30 @@ def tasks():
     can_assign = role in {'Owner', 'Leader', 'IT'}
 
     if request.method == 'POST':
-        task = request.form['task']
-        priority = request.form.get('priority', 'Mid')
-        assignee = request.form.get('assignee', username)
-        if task:
-            target = assignee if can_assign else username
-            target_data = users.get(target)
-            if target_data:
-                target_data['tasks'].append({
-                    'description': task,
-                    'priority': priority,
-                })
-                save_users(users)
+        if 'task' in request.form:
+            task = request.form['task']
+            priority = request.form.get('priority', 'Mid')
+            assignee = request.form.get('assignee', username)
+            if task:
+                target = assignee if can_assign else username
+                target_data = users.get(target)
+                if target_data:
+                    target_data['tasks'].append({
+                        'description': task,
+                        'priority': priority,
+                        'status': 'Incomplete',
+                    })
+                    save_users(users)
+        elif 'task_index' in request.form and 'status' in request.form:
+            target = request.form.get('user', username)
+            if target == username:
+                idx = int(request.form['task_index'])
+                new_status = request.form['status']
+                tasks_list = users[target]['tasks']
+                if 0 <= idx < len(tasks_list):
+                    tasks_list[idx]['status'] = new_status
+                    save_users(users)
+
 
     if can_assign:
         return render_template(
