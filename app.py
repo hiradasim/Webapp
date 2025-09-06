@@ -37,17 +37,12 @@ def tasks():
     user_data = users[username]
     if request.method == 'POST':
         task = request.form['task']
-
         priority = request.form.get('priority', 'Mid')
         if task:
             user_data['tasks'].append({
                 'description': task,
                 'priority': priority,
             })
-
-        if task:
-            user_data['tasks'].append(task)
-
             save_users(users)
     return render_template(
         'tasks.html',
