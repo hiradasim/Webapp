@@ -1,4 +1,5 @@
 {
+
   "Ali": {
     "password": "password",
     "role": "Owner",
@@ -15,6 +16,13 @@
     "password": "password",
     "role": "Leader",
     "branches": ["UNIPRO"],
-    "tasks": []
+=======
+  "alice": {
+    "password": "password",
+    "tasks": ["Buy milk", "Read book"]
+  },
+  "bob": {
+    "password": "password",
+
   }
 }

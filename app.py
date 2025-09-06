@@ -48,6 +48,7 @@ def tasks():
         tasks=user_data['tasks']
     )
 
+
 @app.route('/logout')
 def logout():
     session.pop('username', None)
