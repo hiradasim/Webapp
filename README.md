@@ -7,7 +7,7 @@ This simple web application allows users to log in from multiple devices and man
 - View and add personal tasks with a priority (High, Mid, or Low).
 - Each user has a role and belongs to one or more branches.
 - Tasks and user metadata are stored persistently in `data/users.json`.
-- Users with the Owner, Leader, or IT role can view everyone's tasks and create tasks for any user.
+- Owners, Leaders, and IT staff can view everyone's tasks and assign tasks to any user.
 
 ## Setup
 1. Install dependencies:
