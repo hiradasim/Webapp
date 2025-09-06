@@ -3,6 +3,7 @@
     "password": "password",
     "role": "Owner",
     "branches": ["Mzone", "UNIPRO"],
+
     "tasks": [
       {"description": "Buy milk", "priority": "High"},
       {"description": "Read book", "priority": "Low"}
@@ -18,6 +19,12 @@
     "password": "password",
     "role": "Leader",
     "branches": ["UNIPRO"],
-    "tasks": []
+
+  "alice": {
+    "password": "password",
+    "tasks": ["Buy milk", "Read book"]
+  },
+  "bob": {
+    "password": "password",
   }
 }
