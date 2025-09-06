@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Task Detail{% endblock %}
+{% block content %}
+<h2>{{ task['description'] }}</h2>
+<p><strong>Priority:</strong> {{ task['priority'] }}</p>
+<p><strong>Status:</strong> {{ task['status'] }}</p>
+<p><strong>Created:</strong> {{ task.get('created_at', 'N/A') }}</p>
+
+<h4>Status History</h4>
+<ul>
+  {% for h in task.get('history', []) %}
+  <li>{{ h['timestamp'] }} - {{ h.get('action', '') }} {{ h['status'] }}</li>
+  {% endfor %}
+</ul>
+
+<h4>Notes</h4>
+<ul>
+  {% for n in task.get('notes', []) %}
+  <li>{{ n['timestamp'] }} - {{ n.get('author', '') }}: {{ n['text'] }}</li>
+  {% endfor %}
+</ul>
+
+<form method="post" action="{{ url_for('tasks') }}" class="mb-3">
+  <input type="hidden" name="task_index" value="{{ index }}">
+  <input type="hidden" name="user" value="{{ user }}">
+  <textarea name="note" class="form-control mb-2" placeholder="Add note"></textarea>
+  <button type="submit" class="btn btn-primary">Add Note</button>
+</form>
+<a href="{{ url_for('tasks') }}" class="btn btn-secondary">Back</a>
+{% endblock %}
