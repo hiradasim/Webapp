@@ -9,7 +9,13 @@ from app import app, DATA_PATH, load_users, save_users
 def client(tmp_path, monkeypatch):
     data_file = tmp_path / 'users.json'
     data = {
-        'testuser': {'password': 'secret', 'tasks': []}
+      
+       'testuser': {
+           'password': 'secret',
+           'role': 'Owner',
+           'branches': ['Mzone', 'UNIPRO'],
+           'tasks': []
+        }
     }
     data_file.write_text(json.dumps(data))
     monkeypatch.setattr('app.DATA_PATH', data_file)
@@ -21,6 +27,10 @@ def test_login_and_add_task(client):
     # login
     resp = client.post('/login', data={'username': 'testuser', 'password': 'secret'}, follow_redirects=True)
     assert b"testuser's Tasks" in resp.data
+
+    assert b'Role: Owner' in resp.data
+    assert b'Branches: Mzone, UNIPRO' in resp.data
+
 
     # add a task
     resp = client.post('/tasks', data={'task': 'Test Task'}, follow_redirects=True)

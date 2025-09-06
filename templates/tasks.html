@@ -5,6 +5,8 @@
 </head>
 <body>
     <h1>{{ user }}'s Tasks</h1>
+    <p>Role: {{ role }} | Branches: {{ branches | join(', ') }}</p>
+
     <ul>
     {% for task in tasks %}
         <li>{{ task }}</li>

@@ -5,7 +5,7 @@ This simple web application allows users to log in from multiple devices and man
 ## Features
 - User login with session handling.
 - View and add personal tasks.
-- Tasks are stored persistently in `data/users.json`.
+
 
 ## Setup
 1. Install dependencies:

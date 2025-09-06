@@ -34,12 +34,20 @@ def tasks():
         return redirect(url_for('login'))
     users = load_users()
     username = session['username']
+    user_data = users[username]
     if request.method == 'POST':
         task = request.form['task']
         if task:
-            users[username]['tasks'].append(task)
+            user_data['tasks'].append(task)
             save_users(users)
-    return render_template('tasks.html', user=username, tasks=users[username]['tasks'])
+    return render_template(
+        'tasks.html',
+        user=username,
+        role=user_data.get('role'),
+        branches=user_data.get('branches', []),
+        tasks=user_data['tasks']
+    )
+
 
 @app.route('/logout')
 def logout():
