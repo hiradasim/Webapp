@@ -1,0 +1,29 @@
+{
+  "Ali": {
+    "password": "password",
+    "role": "Owner",
+    "branches": ["Mzone", "UNIPRO"],
+    "tasks": [
+      {"description": "Buy milk", "priority": "High"},
+      {"description": "Read book", "priority": "Low"}
+    ]
+  },
+  "sadegh": {
+    "password": "password",
+    "role": "Worker",
+    "branches": ["Mzone", "UNIPRO"],
+    "tasks": []
+  },
+  "X": {
+    "password": "password",
+    "role": "Leader",
+    "branches": ["UNIPRO"],
+    "tasks": []
+  },
+  "pedram": {
+    "password": "password",
+    "role": "IT",
+    "branches": ["Babol"],
+    "tasks": []
+  }
+}
