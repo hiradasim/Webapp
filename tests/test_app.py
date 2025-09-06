@@ -1,13 +1,17 @@
 import json
+import io
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 import pytest
-from app import app, DATA_PATH, load_users, save_users
+from app import app, load_users
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
     data_file = tmp_path / 'users.json'
+    messages_file = tmp_path / 'messages.json'
+    upload_dir = tmp_path / 'uploads'
+    upload_dir.mkdir()
     data = {
         'owner': {
             'password': 'secret',
@@ -20,11 +24,21 @@ def client(tmp_path, monkeypatch):
             'role': 'Worker',
             'branches': ['Mzone'],
             'tasks': []
+        },
+        'other': {
+            'password': 'secret',
+            'role': 'Worker',
+            'branches': ['Other'],
+            'tasks': []
         }
     }
     data_file.write_text(json.dumps(data))
+    messages_file.write_text('[]')
     monkeypatch.setattr('app.DATA_PATH', data_file)
+    monkeypatch.setattr('app.CHAT_PATH', messages_file)
+    monkeypatch.setattr('app.UPLOAD_FOLDER', upload_dir)
     with app.test_client() as client:
+        client.upload_dir = upload_dir
         yield client
 
 
@@ -97,20 +111,31 @@ def test_user_can_update_status(client):
     users = load_users()
     assert users['worker']['tasks'][0]['status'] == 'Done'
 
-
 def test_chat_requires_login(client):
-    resp = client.post('/chat', json={'message': 'hi'})
+    resp = client.post('/chat/messages', data={'message': 'hi'})
     assert resp.status_code == 401
 
 
-def test_chat_returns_performance_summary(client):
+def test_chat_visibility_and_attachments(client):
     client.post('/login', data={'username': 'worker', 'password': 'secret'}, follow_redirects=True)
-    client.post('/tasks', data={'task': 'A', 'priority': 'High'}, follow_redirects=True)
-    client.post('/tasks', data={'task': 'B', 'priority': 'Low'}, follow_redirects=True)
-    client.post('/tasks', data={'task_index': '0', 'status': 'Done', 'user': 'worker'}, follow_redirects=True)
-    resp = client.post('/chat', json={'message': 'stats'})
+    data = {
+        'message': '@owner secret',
+        'file': (io.BytesIO(b'hello'), 'note.txt')
+    }
+    resp = client.post('/chat/messages', data=data, content_type='multipart/form-data')
     assert resp.status_code == 200
-    data = resp.get_json()
-    assert '2 tasks' in data['reply']
-    assert '1 completed' in data['reply']
+    client.get('/logout')
+
+    client.post('/login', data={'username': 'owner', 'password': 'secret'}, follow_redirects=True)
+    resp = client.get('/chat/messages')
+    msgs = resp.get_json()['messages']
+    assert any(m['text'] == '@owner secret' for m in msgs)
+    attachment_path = client.upload_dir / 'note.txt'
+    assert attachment_path.exists()
+    client.get('/logout')
+
+    client.post('/login', data={'username': 'other', 'password': 'secret'}, follow_redirects=True)
+    resp = client.get('/chat/messages')
+    msgs = resp.get_json()['messages']
+    assert all(m['text'] != '@owner secret' for m in msgs)
 

@@ -1,10 +1,14 @@
 import json
+import re
 from pathlib import Path
 from flask import Flask, request, session, redirect, url_for, render_template, jsonify
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = "supersecret"
 DATA_PATH = Path('data/users.json')
+CHAT_PATH = Path('data/messages.json')
+UPLOAD_FOLDER = Path('static/uploads')
 
 
 @app.template_filter('priority_class')
@@ -22,6 +26,19 @@ def load_users():
 def save_users(users):
     with DATA_PATH.open('w') as f:
         json.dump(users, f, indent=2)
+
+
+def load_messages():
+    if CHAT_PATH.exists():
+        with CHAT_PATH.open() as f:
+            return json.load(f)
+    return []
+
+
+def save_messages(messages):
+    CHAT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with CHAT_PATH.open('w') as f:
+        json.dump(messages, f, indent=2)
 
 
 def get_user_tasks(username):
@@ -124,25 +141,60 @@ def logout():
     return redirect(url_for('login'))
 
 
-@app.route('/chat', methods=['GET', 'POST'])
+@app.route('/chat')
 def chat():
     if 'username' not in session:
-        if request.method == 'POST':
-            return jsonify({'error': 'Unauthorized'}), 401
         return redirect(url_for('login'))
+    return render_template('chat.html')
+
+
+@app.route('/chat/messages', methods=['GET', 'POST'])
+def chat_messages():
+    if 'username' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
 
     if request.method == 'POST':
-        stats = get_user_performance(session['username'])
-        reply = (
-            f"You have {stats['total']} tasks, "
-            f"{stats['done']} completed and {stats['pending']} pending. "
-            f"Completion rate {stats['completion_rate']:.0f}%. "
-            f"Priorities - High: {stats['priority']['High']}, "
-            f"Mid: {stats['priority']['Mid']}, "
-            f"Low: {stats['priority']['Low']}."
-        )
-        return jsonify({'reply': reply})
-    return render_template('chat.html')
+        text = request.form.get('message', '').strip()
+        if not text and 'file' not in request.files:
+            return jsonify({'error': 'No content'}), 400
+        users = load_users()
+        sender = session['username']
+        tags = {t for t in re.findall(r'@([\w]+)', text)}
+        recipients = set()
+        for t in tags:
+            if t in users:
+                recipients.add(t)
+            else:
+                for uname, udata in users.items():
+                    if t in udata.get('branches', []):
+                        recipients.add(uname)
+        if recipients:
+            recipients.add(sender)
+        attachments = []
+        file = request.files.get('file')
+        if file and file.filename:
+            UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
+            filename = secure_filename(file.filename)
+            save_path = UPLOAD_FOLDER / filename
+            file.save(save_path)
+            attachments.append(f'uploads/{filename}')
+        messages = load_messages()
+        messages.append({
+            'sender': sender,
+            'text': text,
+            'recipients': list(recipients),
+            'attachments': attachments,
+        })
+        save_messages(messages)
+        return jsonify({'status': 'ok'})
+
+    username = session['username']
+    messages = load_messages()
+    visible = [
+        m for m in messages
+        if not m['recipients'] or username in m['recipients']
+    ]
+    return jsonify({'messages': visible})
 
 if __name__ == '__main__':
     app.run(debug=True)

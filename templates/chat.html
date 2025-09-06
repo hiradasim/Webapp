@@ -4,41 +4,61 @@
 <div class="card">
   <div class="card-body">
     <div id="chat-log" class="mb-3" style="height:300px; overflow-y:auto;"></div>
-    <form id="chat-form">
-      <div class="input-group">
-        <input type="text" id="message" class="form-control" placeholder="Type a message" required>
+    <form id="chat-form" enctype="multipart/form-data">
+      <div class="input-group mb-2">
+        <input type="text" id="message" name="message" class="form-control" placeholder="Type a message" required>
         <button class="btn btn-primary" type="submit">Send</button>
       </div>
+      <input type="file" id="file" name="file" class="form-control">
     </form>
   </div>
 </div>
 <script>
 const form = document.getElementById('chat-form');
 const log = document.getElementById('chat-log');
+
+async function loadMessages(){
+  const resp = await fetch('{{ url_for('chat_messages') }}');
+  if(resp.ok){
+    const data = await resp.json();
+    log.innerHTML = '';
+    data.messages.forEach(m => appendMessage(m.sender, m.text, m.attachments));
+  }
+}
+
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
   const messageInput = document.getElementById('message');
+  const fileInput = document.getElementById('file');
   const text = messageInput.value;
-  if(!text) return;
-  appendMessage('You', text);
-  messageInput.value = '';
-  const resp = await fetch('{{ url_for('chat') }}', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({message: text})
-  });
-  if(resp.ok){
-    const data = await resp.json();
-    appendMessage('Bot', data.reply);
-  } else {
-    appendMessage('Bot', 'Error retrieving response.');
+  const formData = new FormData();
+  formData.append('message', text);
+  if(fileInput.files[0]){
+    formData.append('file', fileInput.files[0]);
   }
+  await fetch('{{ url_for('chat_messages') }}', {
+    method: 'POST',
+    body: formData
+  });
+  messageInput.value = '';
+  fileInput.value = '';
+  loadMessages();
 });
-function appendMessage(sender, text){
+
+function appendMessage(sender, text, attachments){
   const p = document.createElement('p');
-  p.innerHTML = `<strong>${sender}:</strong> ${text}`;
+  let html = `<strong>${sender}:</strong> ${text}`;
+  if(attachments){
+    attachments.forEach(a => {
+      html += `<br><a href="/static/${a}" target="_blank">Attachment</a>`;
+    });
+  }
+  p.innerHTML = html;
   log.appendChild(p);
   log.scrollTop = log.scrollHeight;
 }
+
+loadMessages();
+setInterval(loadMessages, 5000);
 </script>
 {% endblock %}
