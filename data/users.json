@@ -1,0 +1,10 @@
+{
+  "alice": {
+    "password": "password",
+    "tasks": ["Buy milk", "Read book"]
+  },
+  "bob": {
+    "password": "password",
+    "tasks": []
+  }
+}
