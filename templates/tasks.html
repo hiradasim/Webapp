@@ -80,6 +80,19 @@
   </div>
 {% else %}
   <div class="card mb-4">
+    <div class="card-header">Performance</div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <canvas id="completionChart"></canvas>
+        </div>
+        <div class="col-md-6">
+          <canvas id="trendChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card mb-4">
     <div class="card-header">Your Tasks</div>
     <ul class="list-group list-group-flush" data-user="{{ user }}">
       {% for task in tasks %}
@@ -126,6 +139,40 @@
       </form>
     </div>
   </div>
+  <script>
+    const stats = {{ stats | tojson }};
+    const trend = {{ trend | tojson }};
+    new Chart(document.getElementById('completionChart'), {
+      type: 'pie',
+      data: {
+        labels: ['Done', 'Pending'],
+        datasets: [{
+          data: [stats.done, stats.pending],
+          backgroundColor: ['#198754', '#dc3545']
+        }]
+      }
+    });
+    new Chart(document.getElementById('trendChart'), {
+      type: 'line',
+      data: {
+        labels: trend.map(t => t.date),
+        datasets: [
+          {
+            label: 'Created',
+            data: trend.map(t => t.created),
+            borderColor: '#0d6efd',
+            fill: false
+          },
+          {
+            label: 'Done',
+            data: trend.map(t => t.done),
+            borderColor: '#198754',
+            fill: false
+          }
+        ]
+      }
+    });
+  </script>
 {% endif %}
 {% endblock %}
 
