@@ -97,3 +97,20 @@ def test_user_can_update_status(client):
     users = load_users()
     assert users['worker']['tasks'][0]['status'] == 'Done'
 
+
+def test_chat_requires_login(client):
+    resp = client.post('/chat', json={'message': 'hi'})
+    assert resp.status_code == 401
+
+
+def test_chat_returns_performance_summary(client):
+    client.post('/login', data={'username': 'worker', 'password': 'secret'}, follow_redirects=True)
+    client.post('/tasks', data={'task': 'A', 'priority': 'High'}, follow_redirects=True)
+    client.post('/tasks', data={'task': 'B', 'priority': 'Low'}, follow_redirects=True)
+    client.post('/tasks', data={'task_index': '0', 'status': 'Done', 'user': 'worker'}, follow_redirects=True)
+    resp = client.post('/chat', json={'message': 'stats'})
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert '2 tasks' in data['reply']
+    assert '1 completed' in data['reply']
+

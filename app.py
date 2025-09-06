@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from flask import Flask, request, session, redirect, url_for, render_template
+from flask import Flask, request, session, redirect, url_for, render_template, jsonify
 
 app = Flask(__name__)
 app.secret_key = "supersecret"
@@ -22,6 +22,32 @@ def load_users():
 def save_users(users):
     with DATA_PATH.open('w') as f:
         json.dump(users, f, indent=2)
+
+
+def get_user_tasks(username):
+    """Return the task list for a given user."""
+    users = load_users()
+    return users.get(username, {}).get('tasks', [])
+
+
+def get_user_performance(username):
+    """Calculate task statistics for the user."""
+    tasks = get_user_tasks(username)
+    total = len(tasks)
+    done = sum(1 for t in tasks if t.get('status') == 'Done')
+    pending = total - done
+    priorities = {"High": 0, "Mid": 0, "Low": 0}
+    for t in tasks:
+        p = t.get('priority', 'Mid')
+        priorities[p] = priorities.get(p, 0) + 1
+    completion = (done / total * 100) if total else 0
+    return {
+        'total': total,
+        'done': done,
+        'pending': pending,
+        'completion_rate': completion,
+        'priority': priorities,
+    }
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -96,6 +122,27 @@ def tasks():
 def logout():
     session.pop('username', None)
     return redirect(url_for('login'))
+
+
+@app.route('/chat', methods=['GET', 'POST'])
+def chat():
+    if 'username' not in session:
+        if request.method == 'POST':
+            return jsonify({'error': 'Unauthorized'}), 401
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        stats = get_user_performance(session['username'])
+        reply = (
+            f"You have {stats['total']} tasks, "
+            f"{stats['done']} completed and {stats['pending']} pending. "
+            f"Completion rate {stats['completion_rate']:.0f}%. "
+            f"Priorities - High: {stats['priority']['High']}, "
+            f"Mid: {stats['priority']['Mid']}, "
+            f"Low: {stats['priority']['Low']}."
+        )
+        return jsonify({'reply': reply})
+    return render_template('chat.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
