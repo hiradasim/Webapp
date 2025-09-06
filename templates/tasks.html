@@ -9,11 +9,24 @@
 
     <ul>
     {% for task in tasks %}
+        <li>{{ task.description }} ({{ task.priority }})</li>
+
+
+    <ul>
+    {% for task in tasks %}
         <li>{{ task }}</li>
+
     {% endfor %}
     </ul>
     <form method="post">
         <input type="text" name="task" placeholder="New task" />
+
+        <select name="priority">
+            <option value="High">High</option>
+            <option value="Mid" selected>Mid</option>
+            <option value="Low">Low</option>
+        </select>
+
         <button type="submit">Add</button>
     </form>
     <a href="{{ url_for('logout') }}">Logout</a>

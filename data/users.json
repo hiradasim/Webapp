@@ -1,10 +1,13 @@
 {
-
   "Ali": {
     "password": "password",
     "role": "Owner",
     "branches": ["Mzone", "UNIPRO"],
-    "tasks": ["Buy milk", "Read book"]
+
+    "tasks": [
+      {"description": "Buy milk", "priority": "High"},
+      {"description": "Read book", "priority": "Low"}
+    ]
   },
   "sadegh": {
     "password": "password",
@@ -16,13 +19,12 @@
     "password": "password",
     "role": "Leader",
     "branches": ["UNIPRO"],
-=======
+
   "alice": {
     "password": "password",
     "tasks": ["Buy milk", "Read book"]
   },
   "bob": {
     "password": "password",
-
   }
 }

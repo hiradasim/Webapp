@@ -4,8 +4,9 @@ This simple web application allows users to log in from multiple devices and man
 
 ## Features
 - User login with session handling.
-- View and add personal tasks.
-
+- View and add personal tasks with a priority (High, Mid, or Low).
+- Each user has a role and belongs to one or more branches.
+- Tasks and user metadata are stored persistently in `data/users.json`.
 
 ## Setup
 1. Install dependencies:
