@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tasks</title>
+</head>
+<body>
+    <h1>{% if can_assign %}All Users' Tasks{% else %}{{ user }}'s Tasks{% endif %}</h1>
+    <p>Role: {{ role }} | Branches: {{ branches | join(', ') }}</p>
+
+    {% if can_assign %}
+        {% for uname, udata in all_users.items() %}
+            <h2>{{ uname }}'s Tasks</h2>
+            {% if udata['tasks'] %}
+            <ul>
+            {% for task in udata['tasks'] %}
+                <li>{{ task['description'] }} ({{ task['priority'] }})</li>
+            {% endfor %}
+            </ul>
+            {% else %}
+            <p>No tasks</p>
+            {% endif %}
+        {% endfor %}
+        <form method="post">
+            <input type="text" name="task" placeholder="New task" />
+            <select name="priority">
+                <option value="High">High</option>
+                <option value="Mid" selected>Mid</option>
+                <option value="Low">Low</option>
+            </select>
+            <select name="assignee">
+                {% for uname in all_users.keys() %}
+                    <option value="{{ uname }}">{{ uname }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Add</button>
+        </form>
+    {% else %}
+        <ul>
+        {% for task in tasks %}
+            <li>{{ task['description'] }} ({{ task['priority'] }})</li>
+        {% endfor %}
+        </ul>
+        <form method="post">
+            <input type="text" name="task" placeholder="New task" />
+            <select name="priority">
+                <option value="High">High</option>
+                <option value="Mid" selected>Mid</option>
+                <option value="Low">Low</option>
+            </select>
+            <button type="submit">Add</button>
+        </form>
+    {% endif %}
+    <a href="{{ url_for('logout') }}">Logout</a>
+</body>
+</html>
