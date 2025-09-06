@@ -12,6 +12,7 @@
     <a class="navbar-brand" href="{{ url_for('tasks') }}">Task Manager</a>
     <div class="d-flex">
       {% if session.get('username') %}
+      <a class="btn btn-outline-light me-2" href="{{ url_for('chat') }}">Chat</a>
       <span class="navbar-text me-3">Logged in as {{ session['username'] }}</span>
       <a class="btn btn-outline-light" href="{{ url_for('logout') }}">Logout</a>
       {% endif %}
