@@ -1,113 +1,109 @@
- (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
-diff --git a/templates/chat.html b/templates/chat.html
-index 65aafef5243eac52f7280206172c11240540db74..570ecfa5d097718d8a8551964da0af0b9a31f886 100644
---- a/templates/chat.html
-+++ b/templates/chat.html
-@@ -1,64 +1,101 @@
- {% extends 'base.html' %}
- {% block title %}Chat{% endblock %}
- {% block content %}
- <div class="card">
-   <div class="card-body">
-     <div id="chat-log" class="mb-3" style="height:300px; overflow-y:auto;"></div>
-     <form id="chat-form" enctype="multipart/form-data">
-       <div class="input-group mb-2">
+{% extends 'base.html' %}
+{% block title %}Chat{% endblock %}
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-header bg-primary text-white">Team Chat</div>
+  <div class="card-body d-flex flex-column">
+    <div id="chat-log" class="flex-grow-1 mb-3"></div>
+    <form id="chat-form" enctype="multipart/form-data">
+      <div class="input-group mb-2">
+        <div id="message" class="form-control" contenteditable="true" placeholder="Type a message"></div>
+        <button class="btn btn-outline-secondary" type="button" id="insert-table">Insert Table</button>
+        <button class="btn btn-primary" type="submit">Send</button>
+      </div>
+      <div id="table-controls" class="btn-group mb-2" style="display:none;">
+        <button class="btn btn-outline-secondary" type="button" id="add-row">Add Row</button>
+        <button class="btn btn-outline-secondary" type="button" id="add-col">Add Column</button>
+      </div>
+      <input type="file" id="file" name="file" class="form-control">
+    </form>
+  </div>
+</div>
+<script>
+const form = document.getElementById('chat-form');
+const log = document.getElementById('chat-log');
 
-+        <div id="message" class="form-control" contenteditable="true" placeholder="Type a message"></div>
-+        <button class="btn btn-secondary" type="button" id="insert-table">Insert Table</button>
-         <button class="btn btn-primary" type="submit">Send</button>
-       </div>
-+      <div id="table-controls" class="btn-group mb-2" style="display:none;" role="group">
-+        <button class="btn btn-outline-secondary" type="button" id="add-row">Add Row</button>
-+        <button class="btn btn-outline-secondary" type="button" id="add-col">Add Column</button>
-+      </div>
-       <input type="file" id="file" name="file" class="form-control">
-     </form>
-   </div>
- </div>
- <script>
- const form = document.getElementById('chat-form');
- const log = document.getElementById('chat-log');
- 
- async function loadMessages(){
-   const resp = await fetch('{{ url_for('chat_messages') }}');
-   if(resp.ok){
-     const data = await resp.json();
-     log.innerHTML = '';
-     data.messages.forEach(m => appendMessage(m.sender, m.text, m.attachments));
-   }
- }
- 
- form.addEventListener('submit', async (e) => {
-   e.preventDefault();
-   const messageInput = document.getElementById('message');
-   const fileInput = document.getElementById('file');
+async function loadMessages() {
+  const resp = await fetch('{{ url_for('chat_messages') }}');
+  if (resp.ok) {
+    const data = await resp.json();
+    log.innerHTML = '';
+    data.messages.forEach(m => appendMessage(m.sender, m.text, m.attachments));
+  }
+}
 
-+  const text = messageInput.innerHTML.trim();
-   const formData = new FormData();
-   formData.append('message', text);
-   if(fileInput.files[0]){
-     formData.append('file', fileInput.files[0]);
-   }
-   await fetch('{{ url_for('chat_messages') }}', {
-     method: 'POST',
-     body: formData
-   });
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const messageInput = document.getElementById('message');
+  const fileInput = document.getElementById('file');
 
-+  messageInput.innerHTML = '';
-   fileInput.value = '';
-+  document.getElementById('table-controls').style.display = 'none';
-   loadMessages();
- });
- 
-+document.getElementById('insert-table').addEventListener('click', () => {
-+  const msg = document.getElementById('message');
-+  const table = document.createElement('table');
-+  table.classList.add('table','table-bordered');
-+  table.innerHTML = '<tr><th>Quantity</th><th>Size</th><th>Color</th></tr><tr><td></td><td></td><td></td></tr>';
-+  msg.appendChild(table);
-+  document.getElementById('table-controls').style.display = 'inline-flex';
-+});
-+
-+document.getElementById('add-row').addEventListener('click', () => {
-+  const table = document.querySelector('#message table');
-+  if(table){
-+    const cols = table.rows[0].cells.length;
-+    const row = table.insertRow();
-+    for(let i=0; i<cols; i++){
-+      row.insertCell();
-+    }
-+  }
-+});
-+
-+document.getElementById('add-col').addEventListener('click', () => {
-+  const table = document.querySelector('#message table');
-+  if(table){
-+    const headerCell = document.createElement('th');
-+    table.rows[0].appendChild(headerCell);
-+    for(let i=1; i<table.rows.length; i++){
-+      table.rows[i].insertCell();
-+    }
-+  }
-+});
-+
- function appendMessage(sender, text, attachments){
-   const p = document.createElement('p');
-   let html = `<strong>${sender}:</strong> ${text}`;
-   if(attachments){
-     attachments.forEach(a => {
-       html += `<br><a href="/static/${a}" target="_blank">Attachment</a>`;
-     });
-   }
-   p.innerHTML = html;
-   log.appendChild(p);
-   log.scrollTop = log.scrollHeight;
- }
- 
- loadMessages();
- setInterval(loadMessages, 5000);
- </script>
- {% endblock %}
- 
-EOF
-)
+  const text = messageInput.innerHTML.trim();
+  if (!text && !fileInput.files.length) {
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('message', text);
+  if (fileInput.files[0]) {
+    formData.append('file', fileInput.files[0]);
+  }
+  await fetch('{{ url_for('chat_messages') }}', {
+    method: 'POST',
+    body: formData
+  });
+
+  messageInput.innerHTML = '';
+  fileInput.value = '';
+  document.getElementById('table-controls').style.display = 'none';
+  loadMessages();
+});
+
+document.getElementById('insert-table').addEventListener('click', () => {
+  const msg = document.getElementById('message');
+  const table = document.createElement('table');
+  table.classList.add('table', 'table-sm', 'table-bordered', 'mb-2');
+  table.innerHTML = '<tr><th>Quantity</th><th>Size</th><th>Color</th></tr><tr><td></td><td></td><td></td></tr>';
+  msg.appendChild(table);
+  document.getElementById('table-controls').style.display = 'inline-flex';
+});
+
+document.getElementById('add-row').addEventListener('click', () => {
+  const table = document.querySelector('#message table');
+  if (table) {
+    const cols = table.rows[0].cells.length;
+    const row = table.insertRow();
+    for (let i = 0; i < cols; i++) {
+      row.insertCell();
+    }
+  }
+});
+
+document.getElementById('add-col').addEventListener('click', () => {
+  const table = document.querySelector('#message table');
+  if (table) {
+    const headerCell = document.createElement('th');
+    table.rows[0].appendChild(headerCell);
+    for (let i = 1; i < table.rows.length; i++) {
+      table.rows[i].insertCell();
+    }
+  }
+});
+
+function appendMessage(sender, text, attachments) {
+  const div = document.createElement('div');
+  div.classList.add('chat-message', 'mb-2');
+  let html = '<span class="fw-bold">' + sender + ':</span> ' + text;
+  if (attachments) {
+    attachments.forEach(a => {
+      html += '<br><a href="/static/' + a + '" target="_blank">Attachment</a>';
+    });
+  }
+  div.innerHTML = html;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+loadMessages();
+setInterval(loadMessages, 5000);
+</script>
+{% endblock %}

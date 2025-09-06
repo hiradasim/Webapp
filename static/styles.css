@@ -1,9 +1,33 @@
 body {
-    background-color: #f8f9fa;
+    background: linear-gradient(135deg, #f0f4ff, #d9e4ff);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+}
+
+.navbar {
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
 }
 
 .card {
     animation: fadeIn 0.5s ease-in;
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,0.05);
+}
+
+#chat-log {
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: .25rem;
+    padding: .5rem;
+}
+
+.chat-message {
+    background-color: #e7f1ff;
+    border-radius: .5rem;
+    padding: .5rem .75rem;
+}
+
+#message {
+    min-height: 3rem;
 }
 
 @keyframes fadeIn {
