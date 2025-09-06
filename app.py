@@ -2,6 +2,7 @@ import json
 import re
 from pathlib import Path
 from datetime import datetime
+from collections import Counter
 from flask import Flask, request, session, redirect, url_for, render_template, jsonify
 from werkzeug.utils import secure_filename
 
@@ -66,6 +67,28 @@ def get_user_performance(username):
         'completion_rate': completion,
         'priority': priorities,
     }
+
+
+def build_trend(tasks):
+    """Return cumulative task creation/completion counts by date."""
+    created_counts = Counter()
+    done_counts = Counter()
+    for t in tasks:
+        created = datetime.fromisoformat(t.get('created_at')).date().isoformat()
+        created_counts[created] += 1
+        for h in t.get('history', []):
+            if h.get('status') == 'Done':
+                finished = datetime.fromisoformat(h['timestamp']).date().isoformat()
+                done_counts[finished] += 1
+    dates = sorted(set(created_counts) | set(done_counts))
+    trend = []
+    cumulative_created = 0
+    cumulative_done = 0
+    for d in dates:
+        cumulative_created += created_counts.get(d, 0)
+        cumulative_done += done_counts.get(d, 0)
+        trend.append({'date': d, 'created': cumulative_created, 'done': cumulative_done})
+    return trend
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -173,6 +196,8 @@ def tasks():
             can_assign=True,
             all_users=users,
         )
+    performance = get_user_performance(username)
+    trend = build_trend(user_data['tasks'])
     return render_template(
         'tasks.html',
         user=username,
@@ -180,6 +205,8 @@ def tasks():
         branches=user_data.get('branches', []),
         can_assign=False,
         tasks=user_data['tasks'],
+        stats=performance,
+        trend=trend,
     )
 
 
