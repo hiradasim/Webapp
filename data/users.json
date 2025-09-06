@@ -1,0 +1,20 @@
+{
+  "Ali": {
+    "password": "password",
+    "role": "Owner",
+    "branches": ["Mzone", "UNIPRO"],
+    "tasks": ["Buy milk", "Read book"]
+  },
+  "sadegh": {
+    "password": "password",
+    "role": "Worker",
+    "branches": ["Mzone", "UNIPRO"],
+    "tasks": []
+  },
+  "X": {
+    "password": "password",
+    "role": "Leader",
+    "branches": ["UNIPRO"],
+    "tasks": []
+  }
+}
