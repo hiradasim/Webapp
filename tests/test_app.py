@@ -9,10 +9,16 @@ from app import app, DATA_PATH, load_users, save_users
 def client(tmp_path, monkeypatch):
     data_file = tmp_path / 'users.json'
     data = {
-        'testuser': {
+        'owner': {
             'password': 'secret',
             'role': 'Owner',
             'branches': ['Mzone', 'UNIPRO'],
+            'tasks': []
+        },
+        'worker': {
+            'password': 'secret',
+            'role': 'Worker',
+            'branches': ['Mzone'],
             'tasks': []
         }
     }
@@ -22,26 +28,46 @@ def client(tmp_path, monkeypatch):
         yield client
 
 
-def test_login_and_add_task(client):
-    # login
-    resp = client.post('/login', data={'username': 'testuser', 'password': 'secret'}, follow_redirects=True)
-    assert b"testuser's Tasks" in resp.data
-    assert b'Role: Owner' in resp.data
-    assert b'Branches: Mzone, UNIPRO' in resp.data
+def test_owner_can_assign_to_others(client):
+    resp = client.post('/login', data={'username': 'owner', 'password': 'secret'}, follow_redirects=True)
+    assert b"owner's Tasks" in resp.data
+    assert b"worker's Tasks" in resp.data
 
-    # add a task
+    # owner assigns task to worker
     resp = client.post(
-        '/tasks', data={'task': 'Test Task', 'priority': 'High'}, follow_redirects=True
+        '/tasks',
+        data={'task': 'Delegate', 'priority': 'High', 'assignee': 'worker'},
+        follow_redirects=True,
     )
-    assert b'Test Task' in resp.data
-    assert b'High' in resp.data
+    assert b'Delegate' in resp.data
 
-    # verify persistence
     users = load_users()
     assert {
-        'description': 'Test Task',
+        'description': 'Delegate',
         'priority': 'High',
-    } in users['testuser']['tasks']
+    } in users['worker']['tasks']
+
+
+def test_worker_cannot_assign_or_view_others(client):
+    resp = client.post('/login', data={'username': 'worker', 'password': 'secret'}, follow_redirects=True)
+    assert b"owner's Tasks" not in resp.data
+
+    resp = client.post(
+        '/tasks',
+        data={'task': 'Own Task', 'priority': 'Low', 'assignee': 'owner'},
+        follow_redirects=True,
+    )
+    assert b'Own Task' in resp.data
+
+    users = load_users()
+    assert {
+        'description': 'Own Task',
+        'priority': 'Low',
+    } in users['worker']['tasks']
+    assert {
+        'description': 'Own Task',
+        'priority': 'Low',
+    } not in users['owner']['tasks']
 
 
 def test_requires_login(client):

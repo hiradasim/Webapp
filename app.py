@@ -32,24 +32,43 @@ def login():
 def tasks():
     if 'username' not in session:
         return redirect(url_for('login'))
+
     users = load_users()
     username = session['username']
     user_data = users[username]
+    role = user_data.get('role')
+    can_assign = role in {'Owner', 'Leader', 'IT'}
+
     if request.method == 'POST':
         task = request.form['task']
         priority = request.form.get('priority', 'Mid')
+        assignee = request.form.get('assignee', username)
         if task:
-            user_data['tasks'].append({
-                'description': task,
-                'priority': priority,
-            })
-            save_users(users)
+            target = assignee if can_assign else username
+            target_data = users.get(target)
+            if target_data:
+                target_data['tasks'].append({
+                    'description': task,
+                    'priority': priority,
+                })
+                save_users(users)
+
+    if can_assign:
+        return render_template(
+            'tasks.html',
+            user=username,
+            role=role,
+            branches=user_data.get('branches', []),
+            can_assign=True,
+            all_users=users,
+        )
     return render_template(
         'tasks.html',
         user=username,
-        role=user_data.get('role'),
+        role=role,
         branches=user_data.get('branches', []),
-        tasks=user_data['tasks']
+        can_assign=False,
+        tasks=user_data['tasks'],
     )
 
 @app.route('/logout')

@@ -19,5 +19,11 @@
     "role": "Leader",
     "branches": ["UNIPRO"],
     "tasks": []
+  },
+  "pedram": {
+    "password": "password",
+    "role": "IT",
+    "branches": ["Babol"],
+    "tasks": []
   }
 }
