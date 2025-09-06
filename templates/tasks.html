@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block title %}Tasks{% endblock %}
+{% block content %}
+<h1 class="mb-4">{% if can_assign %}All Users' Tasks{% else %}{{ user }}'s Tasks{% endif %}</h1>
+<p class="text-muted">Role: {{ role }} | Branches: {{ branches | join(', ') }}</p>
+
+{% if can_assign %}
+  <div class="row">
+    {% for uname, udata in all_users.items() %}
+      <div class="col-md-6 mb-4">
+        <div class="card h-100">
+          <div class="card-header">{{ uname }}'s Tasks</div>
+          <ul class="list-group list-group-flush">
+            {% if udata['tasks'] %}
+              {% for task in udata['tasks'] %}
+              <li class="list-group-item">
+                <form method="post" class="d-flex justify-content-between align-items-center">
+                  <span>{{ task['description'] }}</span>
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="badge {{ task['priority'] | priority_class }}">{{ task['priority'] }}</span>
+                    <select name="status" class="form-select form-select-sm" {% if uname != user %}disabled{% endif %}>
+                      <option value="Incomplete" {% if task['status'] == 'Incomplete' %}selected{% endif %}>Incomplete</option>
+                      <option value="Doing" {% if task['status'] == 'Doing' %}selected{% endif %}>Doing</option>
+                      <option value="Done" {% if task['status'] == 'Done' %}selected{% endif %}>Done</option>
+                    </select>
+                    {% if uname == user %}
+                    <input type="hidden" name="task_index" value="{{ loop.index0 }}">
+                    <input type="hidden" name="user" value="{{ uname }}">
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Update</button>
+                    {% endif %}
+                  </div>
+                </form>
+              </li>
+              {% endfor %}
+            {% else %}
+              <li class="list-group-item text-muted">No tasks</li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+  <div class="card mt-4">
+    <div class="card-header">Add Task</div>
+    <div class="card-body">
+      <form method="post" class="row gy-2 gx-3 align-items-center">
+        <div class="col-sm-4">
+          <input type="text" name="task" class="form-control" placeholder="New task" required>
+        </div>
+        <div class="col-sm-2">
+          <select name="priority" class="form-select">
+            <option value="High">High</option>
+            <option value="Mid" selected>Mid</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+        <div class="col-sm-3">
+          <select name="assignee" class="form-select">
+            {% for uname in all_users.keys() %}
+            <option value="{{ uname }}">{{ uname }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-sm-3">
+          <button type="submit" class="btn btn-success w-100">Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
+{% else %}
+  <div class="card mb-4">
+    <div class="card-header">Your Tasks</div>
+    <ul class="list-group list-group-flush">
+      {% for task in tasks %}
+      <li class="list-group-item">
+        <form method="post" class="d-flex justify-content-between align-items-center">
+          <span>{{ task['description'] }}</span>
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge {{ task['priority'] | priority_class }}">{{ task['priority'] }}</span>
+            <select name="status" class="form-select form-select-sm">
+              <option value="Incomplete" {% if task['status'] == 'Incomplete' %}selected{% endif %}>Incomplete</option>
+              <option value="Doing" {% if task['status'] == 'Doing' %}selected{% endif %}>Doing</option>
+              <option value="Done" {% if task['status'] == 'Done' %}selected{% endif %}>Done</option>
+            </select>
+            <input type="hidden" name="task_index" value="{{ loop.index0 }}">
+            <input type="hidden" name="user" value="{{ user }}">
+            <button type="submit" class="btn btn-sm btn-outline-primary">Update</button>
+          </div>
+        </form>
+      </li>
+      {% endfor %}
+      {% if not tasks %}
+      <li class="list-group-item text-muted">No tasks</li>
+      {% endif %}
+    </ul>
+  </div>
+  <div class="card">
+    <div class="card-header">Add Task</div>
+    <div class="card-body">
+      <form method="post" class="row gy-2 gx-3 align-items-center">
+        <div class="col-sm-6">
+          <input type="text" name="task" class="form-control" placeholder="New task" required>
+        </div>
+        <div class="col-sm-3">
+          <select name="priority" class="form-select">
+            <option value="High">High</option>
+            <option value="Mid" selected>Mid</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+        <div class="col-sm-3">
+          <button type="submit" class="btn btn-success w-100">Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}
