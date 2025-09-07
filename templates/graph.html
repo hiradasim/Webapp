@@ -23,14 +23,18 @@
 <script>
 const stats = {{ stats | tojson }};
 for (const [user, info] of Object.entries(stats)) {
-  new Chart(document.getElementById('chart-' + user), {
+  const ctx = document.getElementById('chart-' + user).getContext('2d');
+  const gradient = ctx.createLinearGradient(0,0,0,400);
+  gradient.addColorStop(0, '#667eea');
+  gradient.addColorStop(1, '#764ba2');
+  new Chart(ctx, {
     type: 'bar',
     data: {
       labels: info.week.labels,
       datasets: [{
         label: 'Tasks Done',
         data: info.week.data,
-        backgroundColor: '#0d6efd'
+        backgroundColor: gradient
       }]
     },
     options: {scales: {y: {beginAtZero: true}}}
