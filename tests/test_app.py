@@ -49,7 +49,7 @@ def test_owner_can_assign_to_others(client):
     resp = client.post('/login', data={'username': 'owner', 'password': 'secret'}, follow_redirects=True)
     assert b"All Users' Tasks" in resp.data
 
-    assert b"worker's Tasks" in resp.data
+    assert b"Worker's Tasks" in resp.data
 
     # owner assigns task to worker
     resp = client.post(
