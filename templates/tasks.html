@@ -13,9 +13,9 @@
           <ul class="list-group list-group-flush task-list" data-user="{{ uname }}">
             {% if udata['tasks'] %}
               {% for task in udata['tasks'] %}
-              <li class="list-group-item task-item" draggable="true" data-user="{{ uname }}" data-index="{{ loop.index0 }}">
+              <li class="list-group-item task-item {{ task | overdue_class }}" draggable="true" data-user="{{ uname }}" data-index="{{ loop.index0 }}">
                 <form method="post" class="d-flex justify-content-between align-items-center">
-                  <span><a href="{{ url_for('task_detail', user=uname, index=loop.index0) }}">{{ task['description'] }}</a></span>
+                  <span><a href="{{ url_for('task_detail', user=uname, index=loop.index0) }}">{{ task['description'] }}</a> <small class="text-muted ms-2">Due {{ task.get('due_date', 'N/A') }}</small></span>
                   <div class="d-flex align-items-center gap-2">
                     <span class="badge {{ task['priority'] | priority_class }}">{{ task['priority'] }}</span>
                     <select name="status" class="form-select form-select-sm" {% if uname != user %}disabled{% endif %}>
@@ -55,7 +55,7 @@
     <div class="card-header">Add Task</div>
     <div class="card-body">
       <form method="post" class="row gy-2 gx-3 align-items-center">
-        <div class="col-sm-4">
+        <div class="col-sm-3">
           <input type="text" name="task" class="form-control" placeholder="New task" required>
         </div>
         <div class="col-sm-2">
@@ -72,7 +72,10 @@
             {% endfor %}
           </select>
         </div>
-        <div class="col-sm-3">
+        <div class="col-sm-2">
+          <input type="date" name="due_date" class="form-control">
+        </div>
+        <div class="col-sm-2">
           <button type="submit" class="btn btn-success w-100">Add</button>
         </div>
       </form>
@@ -96,9 +99,9 @@
     <div class="card-header">Your Tasks</div>
     <ul class="list-group list-group-flush" data-user="{{ user }}">
       {% for task in tasks %}
-      <li class="list-group-item">
+      <li class="list-group-item {{ task | overdue_class }}">
         <form method="post" class="d-flex justify-content-between align-items-center">
-          <span><a href="{{ url_for('task_detail', user=user, index=loop.index0) }}">{{ task['description'] }}</a></span>
+          <span><a href="{{ url_for('task_detail', user=user, index=loop.index0) }}">{{ task['description'] }}</a> <small class="text-muted ms-2">Due {{ task.get('due_date', 'N/A') }}</small></span>
           <div class="d-flex align-items-center gap-2">
             <span class="badge {{ task['priority'] | priority_class }}">{{ task['priority'] }}</span>
             <select name="status" class="form-select form-select-sm">
@@ -119,14 +122,29 @@
       {% endif %}
     </ul>
   </div>
+  <div class="card mb-4">
+    <div class="card-header">Past Tasks</div>
+    <ul class="list-group list-group-flush">
+      {% for task in past_tasks %}
+      <li class="list-group-item">
+        <span>{{ task['description'] }}</span>
+        <span class="badge {{ task['priority'] | priority_class }}">{{ task['priority'] }}</span>
+        <small class="text-muted ms-2">Due {{ task.get('due_date', 'N/A') }}</small>
+      </li>
+      {% endfor %}
+      {% if not past_tasks %}
+      <li class="list-group-item text-muted">No past tasks</li>
+      {% endif %}
+    </ul>
+  </div>
   <div class="card">
     <div class="card-header">Add Task</div>
     <div class="card-body">
       <form method="post" class="row gy-2 gx-3 align-items-center">
-        <div class="col-sm-6">
+        <div class="col-sm-5">
           <input type="text" name="task" class="form-control" placeholder="New task" required>
         </div>
-        <div class="col-sm-3">
+        <div class="col-sm-2">
           <select name="priority" class="form-select">
             <option value="High">High</option>
             <option value="Mid" selected>Mid</option>
@@ -134,6 +152,9 @@
           </select>
         </div>
         <div class="col-sm-3">
+          <input type="date" name="due_date" class="form-control">
+        </div>
+        <div class="col-sm-2">
           <button type="submit" class="btn btn-success w-100">Add</button>
         </div>
       </form>

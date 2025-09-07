@@ -44,14 +44,21 @@ def save_messages(messages):
 
 
 def get_user_tasks(username):
-    """Return the task list for a given user."""
+    """Return active tasks for a given user."""
     users = load_users()
     return users.get(username, {}).get('tasks', [])
 
 
+def get_all_tasks(username):
+    """Return active and past tasks for stats/trends."""
+    users = load_users()
+    udata = users.get(username, {})
+    return udata.get('tasks', []) + udata.get('past_tasks', [])
+
+
 def get_user_performance(username):
     """Calculate task statistics for the user."""
-    tasks = get_user_tasks(username)
+    tasks = get_all_tasks(username)
     total = len(tasks)
     done = sum(1 for t in tasks if t.get('status') == 'Done')
     pending = total - done
@@ -109,6 +116,19 @@ def weekly_completion(tasks, days: int = 7):
         counts.append(done)
     return {'labels': labels, 'data': counts}
 
+@app.template_filter('overdue_class')
+def overdue_class(task):
+    due = task.get('due_date')
+    if not due:
+        return ''
+    try:
+        due_date = datetime.fromisoformat(due).date()
+    except ValueError:
+        return ''
+    if due_date < datetime.utcnow().date() and task.get('status') != 'Done':
+        return 'list-group-item-danger'
+    return ''
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -140,16 +160,19 @@ def tasks():
             task = request.form['task']
             priority = request.form.get('priority', 'Mid')
             assignee = request.form.get('assignee', username)
+            due_date = request.form.get('due_date') or None
             if task:
                 target = assignee if can_assign else username
                 target_data = users.get(target)
                 if target_data:
                     now = datetime.utcnow().isoformat()
+                    target_data.setdefault('tasks', [])
                     target_data['tasks'].append({
                         'description': task,
                         'priority': priority,
                         'status': 'Incomplete',
                         'notes': [],
+                        'due_date': due_date,
                         'created_at': now,
                         'history': [{
                             'status': 'Incomplete',
@@ -203,6 +226,9 @@ def tasks():
                         'timestamp': datetime.utcnow().isoformat(),
                         'action': 'status_change'
                     })
+                    if new_status == 'Done':
+                        users[target].setdefault('past_tasks', []).append(task)
+                        tasks_list.pop(idx)
                     save_users(users)
 
 
@@ -216,14 +242,16 @@ def tasks():
             all_users=users,
         )
     performance = get_user_performance(username)
-    trend = build_trend(user_data['tasks'])
+    all_tasks = user_data.get('tasks', []) + user_data.get('past_tasks', [])
+    trend = build_trend(all_tasks)
     return render_template(
         'tasks.html',
         user=username,
         role=role,
         branches=user_data.get('branches', []),
         can_assign=False,
-        tasks=user_data['tasks'],
+        tasks=user_data.get('tasks', []),
+        past_tasks=user_data.get('past_tasks', []),
         stats=performance,
         trend=trend,
     )
@@ -238,7 +266,9 @@ def graph():
     stats = {}
     for uname, udata in users.items():
         perf = get_user_performance(uname)
-        week = weekly_completion(udata.get('tasks', []))
+
+        week = weekly_completion(udata.get('tasks', []) + udata.get('past_tasks', []))
+
         stats[uname] = {'performance': perf, 'week': week}
     return render_template('graph.html', stats=stats)
 
