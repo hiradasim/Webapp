@@ -1,39 +1,50 @@
 body {
-    background: linear-gradient(135deg, #f0f4ff, #d9e4ff);
-    font-family: 'Inter', sans-serif;
+    background: repeating-linear-gradient(
+        45deg,
+        #f5f0e6,
+        #f5f0e6 10px,
+        #ede0d4 10px,
+        #ede0d4 20px
+    );
+    font-family: 'Georgia', serif;
     min-height: 100vh;
+    color: #2c1810;
 }
 
-.navbar {
-    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+.classic-nav {
+    background: linear-gradient(90deg, #8b4513, #a0522d);
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.2);
 }
 
 .card {
-    animation: fadeIn 0.5s ease-in;
-    box-shadow: 0 .5rem 1rem rgba(0,0,0,0.05);
+    animation: scrollFade 0.6s ease-in;
+    box-shadow: none;
+    border: 1px solid #deb887;
+    background-color: rgba(255, 255, 255, 0.8);
 }
 
 #chat-log {
-    background-color: #fff;
-    border: 1px solid #dee2e6;
+    background-color: #fffaf0;
+    border: 1px solid #deb887;
     border-radius: .25rem;
     padding: .5rem;
 }
 
 .chat-message {
-    background-color: #e7f1ff;
+    background-color: #fffaf0;
     border-radius: .5rem;
     padding: .5rem .75rem;
+    border: 1px solid #edd5a6;
 }
 
 #message {
     min-height: 3rem;
 }
 
-@keyframes fadeIn {
+@keyframes scrollFade {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(20px);
     }
     to {
         opacity: 1;
