@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 from datetime import datetime, timedelta
 from collections import Counter
-from flask import Flask, request, session, redirect, url_for, render_template, jsonify, send_from_directory
+from flask import Flask, request, session, redirect, url_for, render_template, jsonify, send_from_directory, Response
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -115,6 +115,35 @@ def weekly_completion(tasks, days: int = 7):
                         done += 1
         counts.append(done)
     return {'labels': labels, 'data': counts}
+
+
+def top_three_tasks(username):
+    """Return the top three tasks for a user sorted by priority and due date."""
+    tasks = get_user_tasks(username)
+    priority_order = {'High': 0, 'Mid': 1, 'Low': 2}
+    def sort_key(t):
+        p = priority_order.get(t.get('priority', 'Mid'), 1)
+        due = t.get('due_date') or '9999-12-31'
+        return (p, due)
+    tasks_sorted = sorted(tasks, key=sort_key)
+    return tasks_sorted[:3]
+
+
+def progress_today(username):
+    """Return number of tasks updated and completed today."""
+    tasks = get_all_tasks(username)
+    today = datetime.utcnow().date()
+    total = 0
+    done = 0
+    for t in tasks:
+        for h in t.get('history', []):
+            ts = datetime.fromisoformat(h['timestamp']).date()
+            if ts == today:
+                total += 1
+                if h.get('status') == 'Done':
+                    done += 1
+                break
+    return {'total': total, 'done': done}
 
 @app.template_filter('overdue_class')
 def overdue_class(task):
@@ -255,6 +284,41 @@ def tasks():
         stats=performance,
         trend=trend,
     )
+
+
+@app.route('/dashboard')
+def dashboard():
+    """Display top tasks, today's progress, and due dates."""
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    username = session['username']
+    top_tasks = top_three_tasks(username)
+    progress = progress_today(username)
+    due_tasks = [t for t in get_user_tasks(username) if t.get('due_date')]
+    return render_template('dashboard.html', top_tasks=top_tasks, progress=progress, due_tasks=due_tasks)
+
+
+@app.route('/calendar.ics')
+def calendar_ics():
+    """Return an iCalendar feed for the user's tasks."""
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    username = session['username']
+    tasks = [t for t in get_user_tasks(username) if t.get('due_date')]
+    lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//TaskManager//EN']
+    for idx, t in enumerate(tasks):
+        due = t['due_date'].replace('-', '')
+        lines.extend([
+            'BEGIN:VEVENT',
+            f'UID:{username}-{idx}',
+            f'SUMMARY:{t["description"]}',
+            f'DTSTART;VALUE=DATE:{due}',
+            f'DTEND;VALUE=DATE:{due}',
+            'END:VEVENT',
+        ])
+    lines.append('END:VCALENDAR')
+    ics_content = '\r\n'.join(lines)
+    return Response(ics_content, mimetype='text/calendar')
 
 
 @app.route('/graph')
