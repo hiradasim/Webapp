@@ -345,7 +345,9 @@ def chat_messages():
         if not m['recipients'] or username in m['recipients']
     ]
     return jsonify({'messages': visible})
-    @app.route('/manifest.json')
+
+
+@app.route('/manifest.json')
 def manifest():
     response = send_from_directory('static', 'manifest.json')
     response.headers['Content-Type'] = 'application/manifest+json'
