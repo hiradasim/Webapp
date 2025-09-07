@@ -150,3 +150,13 @@ def test_chat_visibility_and_attachments(client):
     msgs = resp.get_json()['messages']
     assert all(m['text'] != '@owner secret' for m in msgs)
 
+
+def test_graph_page_requires_login_and_displays_users(client):
+    resp = client.get('/graph')
+    assert resp.status_code == 302
+
+    client.post('/login', data={'username': 'owner', 'password': 'secret'}, follow_redirects=True)
+    resp = client.get('/graph')
+    assert b'Graph' in resp.data
+    assert b'owner' in resp.data
+

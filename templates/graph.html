@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Graph{% endblock %}
+{% block content %}
+<h1 class="mb-4">Graph</h1>
+<div class="row">
+  {% for uname, data in stats.items() %}
+  <div class="col-md-6 mb-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center mb-3">
+          <img src="https://via.placeholder.com/64" alt="avatar" class="rounded-circle me-3">
+          <h5 class="mb-0">{{ uname }}</h5>
+        </div>
+        <div class="progress mb-3">
+          <div class="progress-bar" role="progressbar" style="width: {{ data.performance.completion_rate }}%" aria-valuenow="{{ data.performance.completion_rate }}" aria-valuemin="0" aria-valuemax="100">{{ data.performance.completion_rate | round(1) }}%</div>
+        </div>
+        <canvas id="chart-{{ uname }}"></canvas>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+<script>
+const stats = {{ stats | tojson }};
+for (const [user, info] of Object.entries(stats)) {
+  new Chart(document.getElementById('chart-' + user), {
+    type: 'bar',
+    data: {
+      labels: info.week.labels,
+      datasets: [{
+        label: 'Tasks Done',
+        data: info.week.data,
+        backgroundColor: '#0d6efd'
+      }]
+    },
+    options: {scales: {y: {beginAtZero: true}}}
+  });
+}
+</script>
+{% endblock %}

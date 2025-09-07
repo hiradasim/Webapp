@@ -16,6 +16,7 @@
     <div class="d-flex">
       {% if session.get('username') %}
       <a class="btn btn-outline-light me-2" href="{{ url_for('chat') }}"><i class="bi bi-chat-dots"></i> Chat</a>
+      <a class="btn btn-outline-light me-2" href="{{ url_for('graph') }}"><i class="bi bi-bar-chart"></i> Graph</a>
       <span class="navbar-text me-3">Logged in as {{ session['username'] }}</span>
       <a class="btn btn-outline-light" href="{{ url_for('logout') }}">Logout</a>
       {% endif %}
