@@ -174,3 +174,19 @@ def test_graph_page_requires_login_and_displays_users(client):
     assert b'Graph' in resp.data
     assert b'owner' in resp.data
 
+
+def test_dashboard_and_calendar(client):
+    client.post('/login', data={'username': 'worker', 'password': 'secret'}, follow_redirects=True)
+    client.post('/tasks', data={'task': 'Task1', 'priority': 'High', 'due_date': '2030-01-01'}, follow_redirects=True)
+    client.post('/tasks', data={'task': 'Task2', 'priority': 'Mid', 'due_date': '2030-01-02'}, follow_redirects=True)
+
+    resp = client.get('/dashboard')
+    assert resp.status_code == 200
+    assert b'Top 3 Tasks' in resp.data
+    assert b'Task1' in resp.data
+
+    resp = client.get('/calendar.ics')
+    assert resp.status_code == 200
+    assert b'BEGIN:VCALENDAR' in resp.data
+    assert b'Task1' in resp.data
+

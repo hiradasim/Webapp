@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h2>Dashboard</h2>
+
+<h3>Top 3 Tasks</h3>
+<ul class="list-group mb-4">
+  {% for t in top_tasks %}
+  <li class="list-group-item {{ t | overdue_class }}">
+    {{ t.description }} - {{ t.priority }}{% if t.due_date %} (Due {{ t.due_date }}){% endif %}
+  </li>
+  {% else %}
+  <li class="list-group-item">No tasks</li>
+  {% endfor %}
+</ul>
+
+<h3>Today's Progress</h3>
+<p>{{ progress.done }} of {{ progress.total }} updates completed today</p>
+
+<h3>Upcoming Tasks</h3>
+<ul class="list-group mb-4">
+  {% for t in due_tasks %}
+  <li class="list-group-item">
+    {{ t.description }} - due {{ t.due_date }}
+  </li>
+  {% else %}
+  <li class="list-group-item">No due tasks</li>
+  {% endfor %}
+</ul>
+
+<a class="btn btn-primary" href="{{ url_for('calendar_ics') }}">Sync Calendar (ICS)</a>
+
+<h3 class="mt-4">Your Location</h3>
+<div id="location">Fetching location...</div>
+<script>
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    var lat = pos.coords.latitude.toFixed(5);
+    var lon = pos.coords.longitude.toFixed(5);
+    document.getElementById('location').innerText = 'Latitude: ' + lat + ', Longitude: ' + lon;
+  }, function() {
+    document.getElementById('location').innerText = 'Unable to retrieve location';
+  });
+} else {
+  document.getElementById('location').innerText = 'Geolocation not supported';
+}
+</script>
+
+{% endblock %}
