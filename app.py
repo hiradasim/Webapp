@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 from datetime import datetime, timedelta
 from collections import Counter
-from flask import Flask, request, session, redirect, url_for, render_template, jsonify
+from flask import Flask, request, session, redirect, url_for, render_template, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -345,6 +345,18 @@ def chat_messages():
         if not m['recipients'] or username in m['recipients']
     ]
     return jsonify({'messages': visible})
+    @app.route('/manifest.json')
+def manifest():
+    response = send_from_directory('static', 'manifest.json')
+    response.headers['Content-Type'] = 'application/manifest+json'
+    return response
+
+
+@app.route('/service-worker.js')
+def service_worker():
+    response = send_from_directory('static', 'service-worker.js')
+    response.headers['Content-Type'] = 'application/javascript'
+    return response
 
 if __name__ == '__main__':
     app.run(debug=True)
