@@ -1,39 +1,92 @@
 body {
-    background: linear-gradient(135deg, #f0f4ff, #d9e4ff);
-    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: 'Poppins', sans-serif;
     min-height: 100vh;
+    color: #fff;
 }
 
-.navbar {
-    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+.modern-nav {
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
 }
 
 .card {
-    animation: fadeIn 0.5s ease-in;
-    box-shadow: 0 .5rem 1rem rgba(0,0,0,0.05);
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #333;
+}
+
+.card-header {
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    color: #fff;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
 }
 
 #chat-log {
-    background-color: #fff;
-    border: 1px solid #dee2e6;
-    border-radius: .25rem;
-    padding: .5rem;
+    background-color: rgba(255, 255, 255, 0.6);
+    border: none;
+    border-radius: 20px;
+    padding: 1rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
 }
 
 .chat-message {
-    background-color: #e7f1ff;
-    border-radius: .5rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 20px;
     padding: .5rem .75rem;
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
 #message {
     min-height: 3rem;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    padding: .5rem .75rem;
 }
 
-@keyframes fadeIn {
+.btn-primary {
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    border: none;
+    border-radius: 20px;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(90deg, #5a67d8, #6b46c1);
+}
+
+.form-control,
+.btn,
+.form-select {
+    border-radius: 20px;
+}
+
+.progress {
+    border-radius: 20px;
+    background-color: rgba(255,255,255,0.3);
+    overflow: hidden;
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+.list-group-item {
+    border-radius: 20px;
+    margin-bottom: .5rem;
+}
+
+.list-group-item:last-child {
+    margin-bottom: 0;
+}
+
+@keyframes scrollFade {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(20px);
     }
     to {
         opacity: 1;
