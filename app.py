@@ -129,7 +129,6 @@ def overdue_class(task):
         return 'list-group-item-danger'
     return ''
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -267,7 +266,9 @@ def graph():
     stats = {}
     for uname, udata in users.items():
         perf = get_user_performance(uname)
+
         week = weekly_completion(udata.get('tasks', []) + udata.get('past_tasks', []))
+
         stats[uname] = {'performance': perf, 'week': week}
     return render_template('graph.html', stats=stats)
 
