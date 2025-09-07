@@ -17,19 +17,22 @@ def client(tmp_path, monkeypatch):
             'password': 'secret',
             'role': 'Owner',
             'branches': ['Mzone', 'UNIPRO'],
-            'tasks': []
+            'tasks': [],
+            'past_tasks': []
         },
         'worker': {
             'password': 'secret',
             'role': 'Worker',
             'branches': ['Mzone'],
-            'tasks': []
+            'tasks': [],
+            'past_tasks': []
         },
         'other': {
             'password': 'secret',
             'role': 'Worker',
             'branches': ['Other'],
-            'tasks': []
+            'tasks': [],
+            'past_tasks': []
         }
     }
     data_file.write_text(json.dumps(data))
@@ -92,7 +95,7 @@ def test_requires_login(client):
 
 def test_user_can_update_status(client):
     client.post('/login', data={'username': 'worker', 'password': 'secret'}, follow_redirects=True)
-    client.post('/tasks', data={'task': 'Progress Task', 'priority': 'Mid'}, follow_redirects=True)
+    client.post('/tasks', data={'task': 'Progress Task', 'priority': 'Mid', 'due_date': '2000-01-01'}, follow_redirects=True)
     resp = client.post(
         '/tasks',
         data={'task_index': '0', 'status': 'Done', 'user': 'worker'},
@@ -100,9 +103,11 @@ def test_user_can_update_status(client):
     )
     assert b'Done' in resp.data
     users = load_users()
-    task = users['worker']['tasks'][0]
-    assert task['status'] == 'Done'
-    assert any(h['status'] == 'Done' for h in task.get('history', []))
+    assert users['worker']['tasks'] == []
+    past = users['worker']['past_tasks'][0]
+    assert past['status'] == 'Done'
+    assert past['due_date'] == '2000-01-01'
+    assert any(h['status'] == 'Done' for h in past.get('history', []))
 
 
 def test_add_note_and_reassign(client):
@@ -121,6 +126,15 @@ def test_add_note_and_reassign(client):
     users = load_users()
     assert users['worker']['tasks'] == []
     assert users['other']['tasks'][0]['description'] == 'NoteMe'
+
+
+def test_due_date_highlight(client):
+    client.post('/login', data={'username': 'worker', 'password': 'secret'}, follow_redirects=True)
+    client.post('/tasks', data={'task': 'Old Task', 'priority': 'Low', 'due_date': '2000-01-01'}, follow_redirects=True)
+    resp = client.get('/tasks')
+    assert b'Old Task' in resp.data
+    # should have danger class for overdue
+    assert b'list-group-item-danger' in resp.data
 
 def test_chat_requires_login(client):
     resp = client.post('/chat/messages', data={'message': 'hi'})
@@ -149,4 +163,14 @@ def test_chat_visibility_and_attachments(client):
     resp = client.get('/chat/messages')
     msgs = resp.get_json()['messages']
     assert all(m['text'] != '@owner secret' for m in msgs)
+
+
+def test_graph_page_requires_login_and_displays_users(client):
+    resp = client.get('/graph')
+    assert resp.status_code == 302
+
+    client.post('/login', data={'username': 'owner', 'password': 'secret'}, follow_redirects=True)
+    resp = client.get('/graph')
+    assert b'Graph' in resp.data
+    assert b'owner' in resp.data
 

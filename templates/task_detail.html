@@ -4,6 +4,7 @@
 <h2>{{ task['description'] }}</h2>
 <p><strong>Priority:</strong> {{ task['priority'] }}</p>
 <p><strong>Status:</strong> {{ task['status'] }}</p>
+<p><strong>Due Date:</strong> {{ task.get('due_date', 'N/A') }}</p>
 <p><strong>Created:</strong> {{ task.get('created_at', 'N/A') }}</p>
 
 <h4>Status History</h4>
