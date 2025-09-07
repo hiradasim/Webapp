@@ -1,7 +1,7 @@
 import json
 import re
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from collections import Counter
 from flask import Flask, request, session, redirect, url_for, render_template, jsonify
 from werkzeug.utils import secure_filename
@@ -89,6 +89,25 @@ def build_trend(tasks):
         cumulative_done += done_counts.get(d, 0)
         trend.append({'date': d, 'created': cumulative_created, 'done': cumulative_done})
     return trend
+
+
+def weekly_completion(tasks, days: int = 7):
+    """Return counts of completed tasks for each of the past ``days`` days."""
+    today = datetime.utcnow().date()
+    labels = []
+    counts = []
+    for i in range(days):
+        day = today - timedelta(days=days - i - 1)
+        labels.append(day.isoformat())
+        done = 0
+        for t in tasks:
+            for h in t.get('history', []):
+                if h.get('status') == 'Done':
+                    ts = datetime.fromisoformat(h['timestamp']).date()
+                    if ts == day:
+                        done += 1
+        counts.append(done)
+    return {'labels': labels, 'data': counts}
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -208,6 +227,20 @@ def tasks():
         stats=performance,
         trend=trend,
     )
+
+
+@app.route('/graph')
+def graph():
+    """Display progress bars and weekly charts for all users."""
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    users = load_users()
+    stats = {}
+    for uname, udata in users.items():
+        perf = get_user_performance(uname)
+        week = weekly_completion(udata.get('tasks', []))
+        stats[uname] = {'performance': perf, 'week': week}
+    return render_template('graph.html', stats=stats)
 
 
 @app.route('/tasks/<user>/<int:index>')
